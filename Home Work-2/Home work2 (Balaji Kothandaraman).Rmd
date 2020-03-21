@@ -1,0 +1,308 @@
+---
+title: "Home-Work(2)"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+                                                  HomeWork-2
+                                                  
+                                                  
+
+                                                   Section A
+  
+
+Only use ggplot2 for plotting This section is for testing your ggplot2, and data exploration skills. Dataset
+msleep from ggplot2 package will be using through this section. Use ? to check the documentation of msleep.
+
+Problem 1
+We are interested in those animals whose awake time over 12 hours. Create a bar chart as the following
+figure. Remove the NA values from feeding types: carnivore, omnivore, insectivore and herbivore.
+hints: You may adjust the angel of x-axis label by using theme(axis.text.x=element_text()), and the legend
+labels by using scale_fill_discrete().
+```{r}
+
+install.packages('readr')
+
+install.packages('tidyverse')
+```
+
+
+```{r}
+library('ggplot2')
+library('readr')
+library('tidyverse')
+```
+
+
+```{r}
+data("msleep")
+head(msleep)
+?msleep
+
+```
+
+
+```{r}
+##### Dropping NA values
+m<-c('vore','order','awake')
+new<-msleep[m]
+new<-new[new$awake>12,]
+new<-new%>%drop_na(vore)
+sum(is.na(new$vore))
+head(new)
+
+```
+
+
+```{r}
+##### Plotting the bar graph
+
+ggplot(data=new)+geom_bar(mapping=aes(order,fill=vore))+scale_fill_discrete(name='Feeding Type', labels=c('Carnivore','Herbivore','Insectivore','Omnivore'))+theme(axis.text.x = element_text(angle=30,hjust=1))+xlab('Order')+ylab('Count')
+
+```
+
+
+Problem 2
+We would like to investigate how’s the relationship between total amount of sleep (hr) and brain weight(kg)
+among feeding types: carnivore, omnivore, insectivore and herbivore. Plot total amount of sleep (hr)
+versus brain weight (kg), applying color mapping on the feeding types(vore). Remove the NA group
+from feeding types. Include a smoothing line on the plot. What do you notice in the plot?
+
+
+```{r}
+m<-c('vore','brainwt','sleep_total')
+new<-msleep[m]
+new<-new%>%drop_na(vore)
+sum(is.na(new$vore))
+head(new)
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+##### Plotting the graph
+ggplot(data=new,aes(x=sleep_total,y=brainwt))+geom_point(aes(color=vore))+geom_smooth(se=FALSE)+xlab('Total amount of sleep(hr)')+ylab('Brain weight(kg)')+scale_color_discrete(name='Feeding Type',labels=c('Carnivore','Herbivore','Insectivore','Omnivore'))
+
+```
+
+Interpretation:
+The brain weight of the animals are distributed in the range of 0.001 to 0.4, the smoothing lines helps us to understand the relationship between brain weight and total amount of sleep, the smoothing line linearly decreases
+and then it reaches to a constant. Most of the animals have similar brain weight with sleeping hours around 10 hours. It is difficult to interpret what is the relationship, because most of the data are skewed aroung 10 hours.
+There is also two outliers in the plot.
+
+
+Problem 3
+Still working on the above plot. Apply log transformation on the brain weight Brain Weight (Kg), Log,
+what do you observe in the plot?
+
+
+```{r message=FALSE, warning=FALSE}
+##### Plotting using log transformation
+
+ggplot(data=new,aes(x=sleep_total,y=brainwt))+geom_point(aes(color=vore))+geom_smooth(se=FALSE)+scale_y_log10()+xlab('Total amount of sleep(hr)')+ylab('Brain weight(kg)')+scale_color_discrete(name='Feeding Type',labels=c('Carnivore','Herbivore','Insectivore','Omnivore'))
+
+```
+
+
+Interpretation:
+When log transformation is applied to Brain weight the data's are normalised and the smoothing line indicates that the relationship between two variables decreases linearly.  After this transformation it is easy to interpret the relationship between total amount of sleep vs brain weight, with Herbivore having maximum brain weight with lesser sleeping hours, whereas the insectivore have higher sleeping hours with lesser brain weight, which can be interpreted
+easily in comparision with older plot.
+
+
+
+
+Section B
+
+Only use ggplot2 for plotting
+Section B uses FY 2019 H-1B Employer Data from U.S. Citizenship and Immigration Services. Download
+FY2019 H-1B data from: https://www.uscis.gov/tools/reports-studies/h-1b-employer-data-hub-files
+To read the data manual: https://www.uscis.gov/tools/reports-studies/understanding-our-h-1b-employerdata-hub
+The H-1B is a visa in the United States under the Immigration and Nationality Act, section 101(a)(15)(H)
+that allows U.S. employers to temporarily employ foreign workers in specialty occupations. A specialty
+occupation requires the application of specialized knowledge and a bachelor’s degree or the equivalent of work
+experience.
+Use read.csv() to import the dataset to R.
+
+
+Problem 1
+Import the H-1B data.
+• You may notice the data types of “Initial.Approvals”, “Initial.Denials”, “Continuing.Approvals”, and
+“Continuing.Denials” are wrong. We need to convert them into numerical columns.
+• Return a data frame containing the top 5 employers which have the most cases of initial approved
+H-1B. This data frame should have the columns: employer, initial approvals, initial denials, continuing
+approvals, and continuing denials. Show the top 5 data frame.
+• Plot a bar chart of Employer versus Initial approvals, maping Initial Denials as fill, what do you notice
+based on the plot?
+
+
+
+```{r}
+##### Importing the data
+h1b<-read.csv('h1b_datahubexport-2019.csv',sep=",",stringsAsFactors = FALSE)
+head(h1b)
+
+```
+
+
+
+```{r}
+##### Transforming the data to numeric
+
+h1b<-transform(h1b,Initial.Approvals=as.numeric(gsub(",","",Initial.Approvals)),Initial.Denials=as.numeric(gsub(",","",Initial.Denials)),Continuing.Approvals=as.numeric(gsub(",","",Continuing.Approvals)),
+               Continuing.Denials=as.numeric(gsub(",","",Continuing.Denials)))
+
+head(h1b)
+
+
+```
+
+
+
+Return a data frame containing the top 5 employers which have the most cases of initial approved
+H-1B. This data frame should have the columns: employer, initial approvals, initial denials, continuing
+approvals, and continuing denials. Show the top 5 data frame.
+
+
+```{r}
+##### Subsetting the data with top approval of H1B based on Initial Approvals
+
+m<-(c('Employer','Initial.Approvals','Initial.Denials','Continuing.Approvals','Continuing.Denials'))
+
+h1b_new<-h1b[m]
+
+h1b1<-h1b_new[order(h1b_new$Initial.Approvals,decreasing=T)[1:5],]
+h1b1
+
+```
+
+
+```{r}
+##### Plotting a bar plot according to approvals:
+ggplot(data=h1b1,aes(x=Employer,y=Initial.Approvals))+geom_bar(stat='identity',mapping=aes(fill=Initial.Denials))+theme(axis.text.x=element_text(angle=45,hjust=1))+xlab('Employer')+ylab('Intial Approvals')
+
+```
+
+
+
+Problem 2
+Download geocode data https://public.opendatasoft.com/explore/dataset/us-zip-code-latitude-and-longitude/
+export/?location=3,43.25174,-106.27166&basemap=jawg.streets.
+• Join H-1B data table with geocode data table by State and Zip columns.
+• This new data frame should include columns: zip, employer, initial approvals, initial denials, continuing
+approvals, continuing denials, state, city, longitude, and latitude.
+• Insert a new column prop into this new data frame by the formula: inital denial/initial approval
+
+
+```{r}
+##### Importing the data
+
+geocode<-read.csv('us-zip-code-latitude-and-longitude.csv',sep=';')
+head(geocode)
+```
+
+
+
+```{r}
+##### Joining the table
+
+h1b_new<-merge(h1b,geocode,by.x=c('ZIP','State'),by.y=c('Zip','State'))
+
+head(h1b_new)
+
+```
+
+
+
+```{r}
+##### Subsetting the dataframe
+m<-c('ZIP','Employer','Initial.Approvals','Initial.Denials','Continuing.Approvals','Continuing.Denials','State','City.x','City.y','Longitude','Latitude')
+
+h1b_new<-h1b_new[m]
+head(h1b_new)
+```
+
+
+
+```{r}
+##### Adding proportion as a new column to the dataframe
+
+h1b_new$prop<-h1b_new$Initial.Denials/h1b_new$Initial.Approvals
+head(h1b_new)
+
+
+```
+
+
+
+
+Problem 3
+We are interested in the H-1B cases around Bay Area, California.
+Create a map of the California, and then adjust the plotting x/y limits to a proper zoom level of Bay Area.
+Then showing the locations of each employer along with, the prop less than 0.1 (mapped as the color/fill),
+and the initial approvals (mapped as the size).
+hints: Install map and mapproj packages, and use the ggplot2::map_data() to draw “California” region of
+the US.
+
+```{r}
+install.packages('maps')
+
+install.packages('mapproj')
+
+```
+
+
+```{r}
+##### Reading the california map
+
+cal<- map_data('state',region=c('California'))
+
+ca_base<-ggplot(cal)+geom_polygon(mapping=aes(x=long,y=lat,group=group),fill='NA',color='Black') +coord_quickmap(xlim = c(-123, -121.0),  ylim = c(36, 38))
+
+ca_base
+
+```
+
+
+```{r}
+##### Finding the proportions less than 0.1
+
+pro<-h1b_new[h1b_new$prop<0.1,]
+head(pro)
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+##### Plotting the employers and proportions less than 0.1
+ca_base+geom_point(data=pro,aes(x=Longitude,y=Latitude,color=prop,size=`Initial.Approvals`))
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
