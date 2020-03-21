@@ -1,0 +1,195 @@
+---
+title: "Home-Work4 (Balaji Kothandaraman)"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+                                                 Home-Work 4
+                                               
+                                              
+                                                  Section A
+
+Problem 1
+
+Section A uses “Domestic general government health expenditure (GGHE-D) per capita in Purchasing power
+parity(PPP) int$(Data by country)” and “Adult mortality rate (probability of dying between 15 and 60 years
+per 1000 population) (Data by country)” from World Health Organization (WHO)
+Download complete Domestic general government health expenditure(csv table) from: http://apps.who.int/
+gho/data/view.main.GHEDGGHEDpcPPPSHA2011v To read the data manual: https://www.who.int/data/
+gho/indicator-metadata-registry/imr-details/4960
+Download complete Adult mortality rate(csv table) from: http://apps.who.int/gho/data/view.main.1360
+To read the data manual: https://www.who.int/data/gho/indicator-metadata-registry/imr-details/64
+Use read_csv() to import the dataset to R.
+
+Import data to R, and appropriately make these two tables tidy. Then we only want to keep all the
+information from the table Adult mortality per 1000 population (Data by country)- join these two
+tables by Country and Year. You will get a new data table. Use head() to present the data.
+
+
+```{r}
+##### Importing libraries
+
+library(tidyverse)
+library(ggplot2)
+
+```
+
+
+
+```{r}
+##### Reading csv
+dggh<-read_csv('xmart.csv',skip=1,col_types =cols(Country = col_character(),  `2017` = col_double(),`2016`=col_double(),`2015` = col_double(),`2014` = col_double(),`2013` = col_double(), `2012` = col_double(),`2011` = col_double(), `2010` = col_double(), `2009` = col_double(), `2008` = col_double(), `2007` = col_double(), `2006` = col_double(), `2005` = col_double(), `2004` = col_double(), `2003` = col_double(), `2002` = col_double(),`2001` = col_double(),`2000` = col_double()))
+
+head(dggh)
+```
+
+
+```{r}
+##### Finding the columns to be pivoted
+columns<-colnames(dggh)
+columns<-columns[2:19]
+```
+
+```{r}
+##### converting the columns
+dggh_new<-dggh%>%pivot_longer(c(columns),names_to ="Year",values_to = "Expenditure PP")
+dggh_new<-dggh_new%>%type_convert(col_types = cols(`Year`=col_double()))
+head(dggh_new)
+
+```
+
+
+```{r}
+##### Reading csv
+
+AM<-read_csv('WHOSIS_000004.csv',skip=1,col_types = cols(Country = col_character(),
+  `Year` = col_double(),
+  `Both sexes` = col_double(),
+  Male = col_double(),
+  Female = col_double()))
+
+```
+
+
+```{r}
+##### tidying the data
+
+AM<-AM%>%pivot_longer(c(`Both sexes`,`Male`,`Female`),names_to='sex', values_to='Adult Mortality rate')
+head(AM)
+```
+
+
+```{r}
+##### joining with Adult Mortality rate
+
+new_df<-AM%>%left_join(dggh_new,by=c('Country','Year'))
+head(new_df)
+```
+
+
+Problem 2
+
+Still working on the tabe created in the problem 1. Create a scatterplot of health expenditure per capita
+(PPP) (x-axis) versus adult mortality rate(y-axis) over all the countries from 2000 to 2016. In this plot,
+using color aesthetic to visualize the difference only between “Female” and “Male” (No “Both sexes”). What
+do you notice about the difference between men and women? Does the gap of life expectancy between women
+and men (see: https://www.who.int/gho/mortality_burden_disease/life_tables/situation_trends_text/en/)
+can explain your observation?
+
+hint: Properly deal with the title by using read_csv(skip=?)
+
+
+```{r warning=FALSE}
+##### Plotting health expenditure vs adult mortality
+
+new_df%>%filter(`sex`!='Both sexes')%>%ggplot(aes(`Expenditure PP`,`Adult Mortality rate`,color=`sex`))+geom_point()+xlab('Health expenditure per capita
+(PPP)')+ylab(' Adult Mortality Rate')+scale_color_discrete(name='Sex')+ggtitle('Health expenditure per capita vs Adult Mortality rate ')+theme(plot.title=element_text(hjust=0.5))
+
+```
+
+Interpretation:
+
+With Amount of Health expenditure spent on both males and females, most of the male have higher probability of death in comparison with female. It is also clear the more money spent on health expenditure, the probability of death is low in comparison with no money spent in health expenditure. The life expectancy of men is lesser in comparison with life expectancy women for most of the cases.   
+
+
+Problem 3
+
+Still working on the above new data table. We would like to see what’s the trend of the adult mortality rate of
+“Both sexes” over all the countries from 2000 to 2016. Visualize year (x-axis) versus Adult Mortality per
+1000 population (y-axis) by plotting a boxplot. Include one smooth line (method=“auto”, aes(group=1)).
+What do you notice about the chart?
+
+```{r}
+##### Plotting box plot
+new_df%>%filter(`sex`=='Both sexes')%>%ggplot(aes(factor(`Year`),`Adult Mortality rate`))+geom_boxplot()+geom_smooth(method='auto',aes(group=1),color='red')+theme(plot.title=element_text(hjust=0.5))+ggtitle('Adult Mortality rate for Both sexes')+theme(plot.title=element_text(hjust=0.5))+xlab('Year')
+
+```
+
+Interpretation:
+
+The boxplot shows the Adult mortaliity rate for Both sexes from 2000 to 2016. The 50 % of the people lie in the range of 175 and smooth line indicates how most the data lies and follows a pattern, the box plot also gives the outliers of Adult mortality rate where the most of the points lie above 420. The smooth curve decreases indicating increase in life expectancy as the years changes.
+
+
+
+Problem 4
+
+Still working on the data table. We are also interested in the trend of the adult mortality rate of Both sexes
+in US from 2000 to 2016. Visualize year (x-axis) versus Adult Mortality per 1000 population (y-axis)
+by plotting a scatterplot. Include one smooth line (method=“auto”, aes(group=1)). What do you notice
+about the trend compared to the problem 2? The CDC reported the data of leading causes of death and drug
+overdose deaths increasing in US (https://www.cdc.gov/nchs/hus/index.htm) and the birth rate decreasing
+(https://catalog.data.gov/dataset/births-and-general-fertility-rates-united-states-1909-2013). Intuitively,
+could this explain the concave-up shape?
+
+
+```{r}
+##### Plotting scatter plot
+new_df%>%filter(Country%in%c('United States of America') &`sex`=='Both sexes')%>%ggplot(aes(factor(`Year`),`Adult Mortality rate`))+geom_point()+geom_smooth(method='auto',aes(group=1),color='red')+ggtitle('Adult Mortality rate in United States for Both sexes')+theme(plot.title=element_text(hjust=0.5))+xlab('Year')
+
+```
+
+Interpretation:
+
+The curve indicates that most of cases in US lies between 100 and 120. The probability of death is decreasing linearly but before peaking at 2011 and then increasing linearly. In comparison with problem 2 where more money spent in health expenditure has resulted higher expectancy but in states the expenditure spent on health is doubled when compared to 2000 and still the number is probability of death is high. This sudden upward movement is due to overdose of drugs and decrease in birth rates.
+
+
+
+Problem 5
+
+Still working on the table created in problem 1.
+Compare the adult mortality rate between US and Canada from 2008 to 2016. Visualize year (x-axis) versus
+Adult Mortality per 1000 population (y-axis) by plotting a scatterplot. Using faceting to visualize the
+difference between US and Canada. Include one smooth line (method=“auto”, aes(group=1)) for each facet.
+What do you notice about the difference?
+
+```{r}
+##### plotting scatter plot
+new_df%>%filter(Country%in%c('United States of America','Canada')& Year%in%c(2008:2016)& `sex`=='Both sexes')%>%ggplot(aes(factor(`Year`),`Adult Mortality rate`))+geom_point()+facet_grid(~Country)+geom_smooth(aes(group=1),method='auto',color='red')+ggtitle('Adult Mortality rate(Canada vs US)')+theme(plot.title=element_text(hjust=0.5))+xlab('Year')
+```
+
+Interpretation:
+
+The Adult Mortality rate in Canada is comparatively low in comparison with United States of America for the years 2008 to 2016. The probability of rate of death in canada is decreasing reaching the lowest in 2016 almost reaching 60, while the probability of death has increased in United states reaching the maximum in 2016 with number more than 110.
+
+
+
+Problem 6
+
+Still working on the table created in problem 1. Select two countries you are interested in, and do the same
+steps as you did in the problem 5.(Set the period of time from 2000 to 2016. Using size aesthetic to visualize the health expenditure. Properly deal with the label)
+
+
+```{r}
+##### Plotting scatter plot 
+
+new_df%>%filter(`Country`%in%c('India','China')&`sex`=='Both sexes')%>%ggplot(aes(factor(`Year`),`Adult Mortality rate`,size=`Expenditure PP`))+geom_point()+facet_grid(~Country)+geom_smooth(method='auto',aes(group=1),color='red')+scale_size_continuous(name='Health Expenditure')+ggtitle('Adult Mortality rate(China vs India)')+theme(plot.title=element_text(hjust=0.5))+theme(axis.text.x = element_text(angle=90,hjust=1))+xlab('Year')
+
+```
+
+
+
+
+
